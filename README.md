@@ -27,7 +27,7 @@ To force a new connection use `redis_client` like so:
 
 ```lasso
 local(redis) = redis_client('10.0.0.1',6379)
-#redis->echo
+#redis->ping
 #redis->close 
 ```
 
@@ -41,7 +41,7 @@ redis => {
 
 Commands
 ========
-As of December 2015 the full set of commands for Redis 3.0.6 are supported. The signatures and descriptions	avilable here: [redis.commands.lasso](./redis.commands.lasso)
+As of December 2015 the full set of commands for Redis 3.0.6 are supported. See [redis.io/commands](http://redis.io/commands) for a complete reference. The signatures and descriptions are also available here: [redis.commands.lasso](./redis.commands.lasso)
 
 Unsupported commands can be made like so:
 
@@ -57,9 +57,9 @@ You can pipeline requests like so:
 ```lasso 
 // Pipe results to second capture
 redis->pipeline => {
-	#1->echo
-	#1->echo
-	#1->echo
+	#1->ping
+	#1->ping
+	#1->ping
 } = {
 	#1
 	#2
@@ -70,9 +70,9 @@ redis->pipeline => {
 ```lasso 
 // Return piped results
 local(results) = redis->pipeline => {
-					#1->echo
-					#1->echo
-					#1->echo
+					#1->ping
+					#1->ping
+					#1->ping
 			 	 }
 ```
 
