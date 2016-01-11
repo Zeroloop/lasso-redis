@@ -79,9 +79,93 @@ local(results) = redis->pipeline => {
 
 Pubsub
 ======
+Write description here.
 
+```lasso 
+// Subscribe to channels
+local(redis) = redis 
 
+#redis->subscribe('thisChannel') => {
+    stdoutnl('this channel received: ' + #1)
+}
 
+// Send an example message
+split_thread => {
+	sleep(500)
+	redis->publish('thisChannel','Hello!')
+}
 
+// Listen for 1 response
+#redis->listen(1)
+```
+
+```lasso
+// Listen indefinitely (blocks current Lasso thread)
+#redis->listen 
+```
+
+```lasso
+// Bind a capture to listen to all messages received by client (in addition to any subscribe captures)
+#redis->listen => {
+    local(
+        msg     = #1,
+        channel = #2
+    )
+
+    stdoutnl('Channel ' + #2 + ' received: ' + #1)
+}
+```
+
+Connected clients can be gracefully disconnected with a __CLOSE_CONNECTION__ message (open for discussion).
+
+```lasso
+// Close clients listening to thisChannel
+redis->publish('thisChannel','__CLOSE_CONNECTION__')
+```
+
+Redis Pipe (non-blocking)
+=========================
+Write description here.
+
+```lasso
+// This is non-blocking
+local(pipe) = redis_pipe => redis->subscribe('example') => {
+                                stdoutnl('PIPED: ' + #1)
+                            }
+
+// Example messages
+split_thread => {
+    sleep(500)
+    local(r) = redis
+    #r->publish('example','Hello 1') 
+    #r->publish('example','Hello 2') 
+    #r->publish('example','Hello 3') 
+    #r->publish('example','Hello 4') 
+    #r->publish('example','Hello 5') 
+    #r->close
+}
+
+// Poll the pipe for messages
+loop(10) => {^
+  sleep(100)
+  #pipe->tryread '\n' 
+^}
+
+// Do some more stuff
+
+// Close the pipe
+#pipe->close
+```
+
+```lasso
+// Each pipe has an UUID
+#pipe->id + '\n'
+
+// All pipes are stored in 
+redis_pipes 
+
+// All open pipes can be closed with 
+close_redis_pipes
+```
 
 

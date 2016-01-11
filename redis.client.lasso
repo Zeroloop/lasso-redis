@@ -33,6 +33,7 @@ define redis_client => type {
 		public port,
 		private pipe,
 		private subscribed,
+		private subscriptions = map, 
 		private net
 	
 	public oncreate(host::string = '127.0.0.1', port::integer = 6379, password::string = '') => {
@@ -77,8 +78,8 @@ define redis_client => type {
 		) 
 
 		// Deal with pub/sub
-		.subscribed && (:'SUBSCRIBE', 'PSUBSCRIBE', 'UNSUBSCRIBE', 'PUNSUBSCRIBE') !>> #command
-		? fail(-1, 'Once subscribed only the following commands can be called: SUBSCRIBE, PSUBSCRIBE, UNSUBSCRIBE and PUNSUBSCRIBE')
+		.subscribed && (:'SUBSCRIBE', 'PSUBSCRIBE', 'UNSUBSCRIBE', 'PUNSUBSCRIBE') !>> #cmds->first
+		? fail(-1, 'Once subscribed only the following commands can be called: SUBSCRIBE, PSUBSCRIBE, UNSUBSCRIBE and PUNSUBSCRIBE: ' + #cmds)
 
 
 		.subscribed ? #gb = .subscriptions->find(params->first)
@@ -105,7 +106,7 @@ define redis_client => type {
 		}
 
 		handle_error => protect => {
-			debug('error' = #cmds)
+			stdoutnl('redis.error' = #cmds)
 		}
 
 		// Issue command
@@ -118,34 +119,77 @@ define redis_client => type {
 		) 
 	}
 
+	public close => if(.'net') => {
+	//	.subscribed ? .unsubscribe 
+	//	.quit 
+		.'net'->close  
+		.'net' = null 
+	}
+
+	public dowithclose => {
+		givenblock->invoke(self)
+		.close
+	}
+
+	public read => {
+		local(
+			out = bytes,
+			i = 0,
+			buf 
+		)
+		while(!#out->endswith('\r\n') && #i++ < 1024) => {
+			#buf = .net->readSomeBytes(1024 * 8,1)
+		//	stdoutnl('buf: '  + #buf)
+			#buf ? #out->append(#buf)			
+		}
+		return #out 
+	}
 
 	public write(p::array)  => .write(resp_encode(#p))
 	public write(p::string) => .write(#p->asbytes)
 	public write(p::bytes)  => .net->writebytes(#p)
 
-	public read => {
+	public listen(count::integer=0) => {
+
 		local(
-			out = bytes,
+			gb = givenblock,
+			results,
+			cmd,
+			key,
+			msg,
+			cap,
 			i = 0
 		)
 
-		while(!#out->endswith('\r\n')) => {
-			#out->append(
-				.net->readSomeBytes(1024 * 1024,1)
-			)
+		while(!#count || #i < #count) => {
+			#results = .results
+
+			with result in #results->isa(::staticarray) ? #results | array(#results) do {
+
+				#i++
+
+				if(#result && #result->size == 3 && #result->get(1) == 'message') => {
+					#cmd = #result->get(1)
+					#key = #result->get(2)
+					#msg = #result->get(3)
+
+					// Close the connection if received from server
+					#msg == '__CLOSE_CONNECTION__' ? return .close 
+
+					// Trigger subsription call backs
+					#cap = .subscriptions->find(#key)
+					#cap ? #cap(#msg)
+
+					// If givenblock provide message + key
+					#gb ? #gb(#msg,#key)
+				}
+				// Is this needed?
+				sleep(50)
+			}
+
 		}
-		return #out 
 	}
 
-
-	public close => if(.'net') => {
-		.'net'->close 
-		.'net' = null 
-	}
-	public dowithclose => {
-		givenblock->invoke(self)
-		.close
-	}
 
 	public result  => resp_decode(.read->asstring)
 	public results => {
@@ -187,6 +231,8 @@ define redis_client => type {
 				.call(#command,#key)
 			}
 		}
+
+		return self 
 	}
 
 	public pipeline=(p::capture) => .pipeline => pair(givenblock = #p)

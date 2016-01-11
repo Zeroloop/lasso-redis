@@ -1,5 +1,5 @@
 <?lasso
- 
+      
 // Stop listening for messages posted to the given channels
 define redis_client->unsubscribe()   
 	=> .unsub('UNSUBSCRIBE', params)
@@ -23,7 +23,7 @@ define redis_client->psubscribe(pattern, ...)
 define redis_client->punsubscribe(pattern, ...) 
 	=> .unsub('PUNSUBSCRIBE', params)
 	=> givenblock
-
+ 
 // Append a value to a key
 define redis_client->append(key, value) 
 	=> .call('APPEND', params)
@@ -86,10 +86,10 @@ define redis_client->brpoplpush(source, destination, timeout::integer)
 define redis_client->client_kill(ip::string, port::integer) 
 	=> .call('CLIENT KILL',#ip + ':' + #port)
 	=> givenblock
-
+          
 define redis_client->client_kill(-id = '', -type = '',-addr = '', -skipme::boolean = true) 
 	=> .call('CLIENT KILL', params)
-	=> givenblock
+	=> givenblock  
 
 // Get the list of client connections
 define redis_client->client_list() 
@@ -258,7 +258,7 @@ define redis_client->dbsize()
 define redis_client->debug_object(key) 
 	=> .call('DEBUG OBJECT', params)
 	=> givenblock 
- 
+ 
 // Make the server crash
 define redis_client->debug_segfault() 
 	=> .call('DEBUG SEGFAULT', params)
@@ -460,7 +460,7 @@ define redis_client->hstrlen(key, field)
 // Get all the values in a hash
 define redis_client->hvals(key) 
 	=> .call('HVALS', params)
-	=> givenblock
+	=> givenblock 
 
 // Increment the integer value of a key by one
 define redis_client->incr(key) 
@@ -521,7 +521,7 @@ define redis_client->lpush(key, value, ...values)
 define redis_client->lpushx(key, value) 
 	=> .call('LPUSHX', params)
 	=> givenblock
-
+  
 // Get a range of elements from a list
 define redis_client->lrange(key, start, stop) 
 	=> .call('LRANGE', params)
@@ -636,7 +636,7 @@ define redis_client->pttl(key)
 define redis_client->publish(channel, message) 
 	=> .call('PUBLISH', params)
 	=> givenblock
-
+
 // Close the connection
 define redis_client->quit() 
 	=> .call('QUIT', params)
@@ -932,7 +932,7 @@ define redis_client->zrange(key, start, stop, -WITHSCORES = false)
 // Return a range of members in a sorted set, by lexicographical range
 define redis_client->zrangebylex(key, min, max, -LIMIT = '') 
 	=> .call('ZRANGEBYLEX', params)
-	=> givenblock
+	=> givenblock     
 
 // Return a range of members in a sorted set, by lexicographical range, ordered from higher to lower strings.
 define redis_client->zrevrangebylex(key, max, min, LIMIT = '') 
@@ -963,7 +963,7 @@ define redis_client->zremrangebylex(key, min, max)
 define redis_client->zremrangebyrank(key, start, stop) 
 	=> .call('ZREMRANGEBYRANK', params)
 	=> givenblock
- 
+ 
 // Remove all members in a sorted set within the given scores
 define redis_client->zremrangebyscore(key, min, max) 
 	=> .call('ZREMRANGEBYSCORE', params)

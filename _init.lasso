@@ -2,6 +2,7 @@
 with file in (:
 	'redis.client.lasso',
 	'redis.commands.lasso',
+	'redis.threads.lasso',
 	'resp_decode.lasso',
 	'resp_encode.lasso' 
 ) do  {
