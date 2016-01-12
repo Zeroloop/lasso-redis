@@ -21,7 +21,7 @@ define redis_01 => redis('10.0.0.1',6379)
 Connections
 ===========
 
-Client connections are automatically reused on a thread level — all connections will automatically closed at the end of the web request. Use `->close` to close a connection manually or `redis_close_connections` to close all connections.
+Client connections are automatically reused on a thread level — all connections will be automatically closed at the end of the web request. Use `->close` to close a connection manually or `redis_close_connections` to close all connections.
 
 To force a new connection use `redis_client` like so:
 
