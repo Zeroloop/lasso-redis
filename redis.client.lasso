@@ -68,6 +68,7 @@ define redis_client => type {
 	// Collate params
 	public call(command::string, ...rest) => .call(#command,#rest || staticarray)
 
+	// Main call to Redis
 	public call(command::string, params::staticarray) => {
 
 		// Commands to send
@@ -119,9 +120,8 @@ define redis_client => type {
 		) 
 	}
 
+	// Close connection
 	public close => if(.'net') => {
-	//	.subscribed ? .unsubscribe 
-	//	.quit 
 		.'net'->close  
 		.'net' = null 
 	}
@@ -131,6 +131,7 @@ define redis_client => type {
 		.close
 	}
 
+	// Read main response
 	public read => {
 		local(
 			out = bytes,
@@ -149,6 +150,7 @@ define redis_client => type {
 	public write(p::string) => .write(#p->asbytes)
 	public write(p::bytes)  => .net->writebytes(#p)
 
+	// Listing for messages from subscriptions
 	public listen(count::integer=0) => {
 
 		local(
@@ -183,15 +185,16 @@ define redis_client => type {
 					// If givenblock provide message + key
 					#gb ? #gb(#msg,#key)
 				}
-				// Is this needed?
-				sleep(50)
+				sleep(10)
 			}
 
 		}
 	}
 
-
+	// Decode result
 	public result  => resp_decode(.read->asstring)
+
+	// Decode results
 	public results => {
 		local(result) = .result
 		
@@ -202,6 +205,10 @@ define redis_client => type {
 			| (:#result)
 		)
 	}
+
+/////////////////////////////////////////////////////////
+//	Pub/Sub methods
+/////////////////////////////////////////////////////////
 	
 	public unsub(command::string,keys::staticarray) => {
 		.pipeline => {
@@ -234,6 +241,10 @@ define redis_client => type {
 
 		return self 
 	}
+
+/////////////////////////////////////////////////////////
+//	Piping methods
+/////////////////////////////////////////////////////////
 
 	public pipeline=(p::capture) => .pipeline => pair(givenblock = #p)
 
@@ -271,7 +282,13 @@ define redis_client => type {
 
 	}
 }
-// 
+
+/////////////////////////////////////////////////////////
+//
+//	Connection handlers
+//
+/////////////////////////////////////////////////////////
+
 define redis_clients => {
 	if(var(__redis__clients__)->isnota(::map)) => {
 		$__redis__clients__ = map
