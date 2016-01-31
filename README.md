@@ -168,4 +168,7 @@ redis_pipes
 close_redis_pipes
 ```
 
+Installation
+============
+Place zip file in your LassoApps folder and restart Lasso / the instance.
 
