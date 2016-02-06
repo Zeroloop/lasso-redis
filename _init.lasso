@@ -18,6 +18,6 @@ with file in (:
 	// allow relative includes
 	.filename !>> '/instances/' && .filename !>> 'zip:' && .filename != '/_init.lasso' 
 	? library(include_path + #file)
-	| lassoapp_include(#file)	
+	| lassoapp_include_current(#file)	
 }
 ?>
