@@ -16,7 +16,7 @@ with file in (:
 	stdout('\t' + #file + ' - ')
 
 	// allow relative includes
-	self->filename !>> '/instances/'
+	self->filename !>> '/instances/' && self->filename !>> 'zip:' && self->filename != '/_init.lasso' 
 	? library(include_path + #file)
 	| lassoapp_include(#file)	
 }
