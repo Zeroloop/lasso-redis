@@ -75,11 +75,11 @@ define resp_decode => type {
         #out = .raw->get(.i++)
         
         // Check for carrage returns in string
-        #out->size != #size
+        #out->size < #size
         ? { 
             #out->append('\r\n')
             #out->append(.raw->get(.i++))
-            #out->size != #size ? currentcapture->restart 
+            #out->size < #size ? currentcapture->restart 
         }()
 
         // Return string
