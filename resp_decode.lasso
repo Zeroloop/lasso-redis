@@ -72,7 +72,7 @@ define resp_decode => type {
         #size == -1 ? return null
 
         // Grab first component
-        #out = .raw->get(.i++)
+        #out = .raw->get(.i++)->asbytes
         
         // Check for carrage returns in string
         #out->size < #size
@@ -83,7 +83,7 @@ define resp_decode => type {
         }()
 
         // Return string
-        return #out
+        return #out->asstring 
     }
 
     public consume_array(p::string) => {
