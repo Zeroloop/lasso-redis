@@ -136,19 +136,23 @@ define redis_client => type {
 		local(
 			out = bytes,
 			i = 0,
-			buf 
+			buf
 		)
-		while(!#out->endswith('\r\n') && #i++ < 1024) => {
-			#buf = .net->readSomeBytes(1024 * 8,1)
-		//	stdoutnl('buf: '  + #buf)
+
+		/* GetResponse */ {
+			#buf := .net->readSomeBytes(1024 * 8, #out->size ? 0 | 1)
 			#buf ? #out->append(#buf)			
-		}
+			#buf && #i++ < 1024 ? currentcapture->restart()
+		}()
+
 		return #out 
 	}
 
 	public write(p::array)  => .write(resp_encode(#p))
 	public write(p::string) => .write(#p->asbytes)
-	public write(p::bytes)  => .net->writebytes(#p)
+	public write(p::bytes)  => {
+		.net->writebytes(#p)
+	}
 
 	// Listing for messages from subscriptions
 	public listen(count::integer=0) => {

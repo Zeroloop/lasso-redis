@@ -79,7 +79,7 @@ define resp_decode => type {
         ? { 
             #out->append('\r\n')
             #out->append(.raw->get(.i++))
-            #out->size < #size ? currentcapture->restart 
+            #out->size < #size && .raw->size <= .i ? currentcapture->restart 
         }()
 
         // Return string
