@@ -38,13 +38,15 @@ define resp_decode => type {
     }
 
     public consume_line(p::string = .raw->get(.i++)) => {
-        match(#p->get(1)) => {
-            case('$') return .consume_string(#p)
-            case('+') return .consume_simple(#p)
-            case('*') return .consume_array(#p)
-            case(':') return .consume_integer(#p)
-            case('-') return .consume_error(#p)
-        }
+    	if(#p->size) => {
+			match(#p->get(1)) => {
+				case('$') return .consume_string(#p)
+				case('+') return .consume_simple(#p)
+				case('*') return .consume_array(#p)
+				case(':') return .consume_integer(#p)
+				case('-') return .consume_error(#p)
+			}
+		}
     }    
 
     public consume_integer(p::string) => {
