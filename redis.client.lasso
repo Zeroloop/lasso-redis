@@ -151,7 +151,7 @@ define redis_client => type {
         		handle_error => {
 	                error_msg >> 'Position was out of range' ? #cap->restart()
 	            }
-	            ! #buf ? return resp_decode(#out) 
+	            ! #buf ? return resp_decode(#out->asstring) 
 	        }
 		}()
 
