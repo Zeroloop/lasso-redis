@@ -146,10 +146,10 @@ define redis_client => type {
 			#buf ? currentcapture->restart()
 			
 	        // Ensure decodes OK 
-	        #i++ < 10000
+	        #i++ < 2048
 	        ? protect => {
-	            handle_error => {
-	                #cap->restart()
+        		handle_error => {
+	                error_msg >> 'Position was out of range' ? #cap->restart()
 	            }
 	            ! #buf ? return resp_decode(#out) 
 	        }
