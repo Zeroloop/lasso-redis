@@ -134,16 +134,27 @@ define redis_client => type {
 	// Read main response
 	public read => {
 		local(
-			out = bytes,
+		    out = bytes,
 			i = 0,
-			buf
+			buf, cap
 		)
-
+		
 		/* GetResponse */ {
-			#buf := .net->readSomeBytes(1024 * 8, #out->size ? 0 | 1)
+			#buf := .net->readSomeBytes(1024 * 8, #buf ? 0 | 1)
 			#buf ? #out->append(#buf)			
-			#buf && #i++ < 1024 ? currentcapture->restart()
+            #cap = currentcapture
+			#buf ? currentcapture->restart()
+			
+	        // Ensure decodes OK 
+	        #i++ < 10000
+	        ? protect => {
+	            handle_error => {
+	                #cap->restart()
+	            }
+	            ! #buf ? return resp_decode(#out) 
+	        }
 		}()
+
 
 		return #out 
 	}
@@ -196,7 +207,16 @@ define redis_client => type {
 	}
 
 	// Decode result
-	public result  => resp_decode(.read->asstring)
+	public result => {
+
+		local(read) = .read
+
+		// Decoding is validated in read now
+		return (
+			#read->isa(::bytes) ? resp_decode(#read->asstring) | #read
+		)
+
+	}
 
 	// Decode results
 	public results => {
