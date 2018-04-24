@@ -59,7 +59,7 @@ define redis_client => type {
 		local(net) = net_tcp
 
 		// Open connection
-		#net->connect(.host,.port,1)
+		#net->connect(.host, .port, 30)
 		? return .'net' := #net
 		| fail(-1,'Unable to connect to Redis on ' + .host + ':' + .port) 
 
