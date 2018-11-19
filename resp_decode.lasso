@@ -15,8 +15,9 @@ define resp_decode => type {
     public oncreate(p0::string,p1::string,...) => (with p in params select .consume(#p))->asstaticarray
     
     public consume(p::string) => {
-
         local(out) = array
+
+        ! #p ? return #out 
 
         // Dealing with lines reduces iterations
         .raw = #p->split('\r\n')->asstaticarray
@@ -38,6 +39,7 @@ define resp_decode => type {
     }
 
     public consume_line(p::string = .raw->get(.i++)) => {
+
         match(#p->get(1)) => {
             case('$') return .consume_string(#p)
             case('+') return .consume_simple(#p)
@@ -48,15 +50,15 @@ define resp_decode => type {
     }    
 
     public consume_integer(p::string) => {
-        return integer(#p->sub(2,20))
+        return integer(#p->sub(2))
     }
 
     public consume_simple(p::string) => {
-        return #p->sub(2,1024)
+        return #p->sub(2)
     }
 
     public consume_error(p::string) => {
-        local(error) = #p->sub(2,1024)
+        local(error) = #p->sub(2)
         // Throw the error
         fail(-1,#error)
     }
@@ -64,7 +66,7 @@ define resp_decode => type {
     public consume_string(p::string) => {
         // Establish size
         local(
-            size = integer(#p->sub(2,20)),
+            size = integer(#p->sub(2)),
             out 
         )
 
@@ -86,15 +88,16 @@ define resp_decode => type {
         return #out->asstring 
     }
 
-    public consume_array(p::string) => {
+    public consume_array(p::string) => {        
         local(
             // Establish size
-            size = integer(#p->sub(2,40)),
+            size = integer(#p->sub(2)),
             out = array
         )
 
-        while(#size--) => {
-            #out->insert(.consume_line)  
+        #size != -1
+        ? while(#size && #size != -1) => {
+           #out->insert(.consume_line)  
         }
 
         // Return array
