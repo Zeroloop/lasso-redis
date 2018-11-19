@@ -20,6 +20,8 @@ define redis(host::string = '127.0.0.1', port::integer = 6379, password::string 
 
 }
 
+define redis_client_read_timeout => 30
+
 /////////////////////////////////////////////////////////
 //
 //	Redis client type
@@ -140,7 +142,7 @@ define redis_client => type {
 		)
 		
 		/* GetResponse */ {
-			#buf := .net->readSomeBytes(1024 * 8, #buf ? 0 | 1)
+			#buf := .net->readSomeBytes(1024 * 8, #buf ? 0 | redis_client_read_timeout)
 			#buf ? #out->append(#buf)			
             #cap = currentcapture
 			#buf ? currentcapture->restart()
