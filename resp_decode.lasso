@@ -15,9 +15,10 @@ define resp_decode => type {
     public oncreate(p0::string,p1::string,...) => (with p in params select .consume(#p))->asstaticarray
     
     public consume(p::string) => {
+
         local(out) = array
 
-        ! #p ? return #out 
+        ! #p ? return #p  
 
         // Dealing with lines reduces iterations
         .raw = #p->split('\r\n')->asstaticarray
@@ -64,6 +65,7 @@ define resp_decode => type {
     }
 
     public consume_string(p::string) => {
+
         // Establish size
         local(
             size = integer(#p->sub(2)),
@@ -88,7 +90,8 @@ define resp_decode => type {
         return #out->asstring 
     }
 
-    public consume_array(p::string) => {        
+    public consume_array(p::string) => {
+
         local(
             // Establish size
             size = integer(#p->sub(2)),
