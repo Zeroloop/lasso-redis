@@ -40,7 +40,6 @@ define resp_decode => type {
     }
 
     public consume_line(p::string = .raw->get(.i++)) => {
-
         match(#p->get(1)) => {
             case('$') return .consume_string(#p)
             case('+') return .consume_simple(#p)
@@ -91,15 +90,13 @@ define resp_decode => type {
     }
 
     public consume_array(p::string) => {
-
         local(
             // Establish size
             size = integer(#p->sub(2)),
             out = array
         )
 
-        #size != -1
-        ? while(#size && #size != -1) => {
+        while(#out->size < #size && #size != -1) => {
            #out->insert(.consume_line)  
         }
 
