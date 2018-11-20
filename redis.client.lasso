@@ -20,13 +20,13 @@ define redis(host::string = '127.0.0.1', port::integer = 6379, password::string 
 
 }
 
-define redis_client_read_timeout => 30
-
 /////////////////////////////////////////////////////////
 //
 //	Redis client type
 //
 /////////////////////////////////////////////////////////
+
+define redis_client_timeout => 60 
 
 define redis_client => type {
 
@@ -61,7 +61,7 @@ define redis_client => type {
 		local(net) = net_tcp
 
 		// Open connection
-		#net->connect(.host, .port, 30)
+		#net->connect(.host,.port,1)
 		? return .'net' := #net
 		| fail(-1,'Unable to connect to Redis on ' + .host + ':' + .port) 
 
@@ -109,7 +109,7 @@ define redis_client => type {
 		}
 
 		handle_error => protect => {
-			stdoutnl('redis.error' = #cmds)
+			stdoutnl('redis.error ' + error_msg + ': ' + #cmds)
 		}
 
 		// Issue command
@@ -142,7 +142,7 @@ define redis_client => type {
 		)
 		
 		/* GetResponse */ {
-			#buf := .net->readSomeBytes(1024 * 8, #buf ? 0 | redis_client_read_timeout)
+			#buf := .net->readSomeBytes(1024 * 8, #buf ? 0 | redis_client_timeout)
 			#buf ? #out->append(#buf)			
             #cap = currentcapture
 			#buf ? currentcapture->restart()
@@ -333,8 +333,6 @@ define redis_connections => {
 }
 
 define redis_close_connections => redis_connections->foreach => { #1->close }
-
-
 
 
 ?>
