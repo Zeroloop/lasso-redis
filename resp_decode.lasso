@@ -18,6 +18,8 @@ define resp_decode => type {
 
         local(out) = array
 
+        ! #p ? return #p  
+
         // Dealing with lines reduces iterations
         .raw = #p->split('\r\n')->asstaticarray
         .i = 1
@@ -37,34 +39,37 @@ define resp_decode => type {
         )
     }
 
-    public consume_line(p::string = .raw ? .raw->get(.i++) || '') => {
-        match(#p->get(1)) => {
-            case('$') return .consume_string(#p)
-            case('+') return .consume_simple(#p)
-            case('*') return .consume_array(#p)
-            case(':') return .consume_integer(#p)
-            case('-') return .consume_error(#p)
-        }
+    public consume_line(p::string = .raw->get(.i++)) => {
+    	if(#p->size) => {
+			match(#p->get(1)) => {
+				case('$') return .consume_string(#p)
+				case('+') return .consume_simple(#p)
+				case('*') return .consume_array(#p)
+				case(':') return .consume_integer(#p)
+				case('-') return .consume_error(#p)
+			}
+		}
     }    
 
     public consume_integer(p::string) => {
-        return integer(#p->sub(2,20))
+        return integer(#p->sub(2))
     }
 
     public consume_simple(p::string) => {
-        return #p->sub(2,1024)
+        return #p->sub(2)
     }
 
     public consume_error(p::string) => {
-        local(error) = #p->sub(2,1024)
+        local(error) = #p->sub(2)
         // Throw the error
         fail(-1,#error)
     }
 
     public consume_string(p::string) => {
+
         // Establish size
         local(
-            size = integer(#p->sub(2,20)),
+            size = integer(#p->sub(2)),
             out 
         )
 
@@ -89,12 +94,12 @@ define resp_decode => type {
     public consume_array(p::string) => {
         local(
             // Establish size
-            size = integer(#p->sub(2,40)),
+            size = integer(#p->sub(2)),
             out = array
         )
 
-        while(#size-- > 0) => {
-            #out->insert(.consume_line)  
+        while(#out->size < #size && #size != -1) => {
+           #out->insert(.consume_line)  
         }
 
         // Return array
